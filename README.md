@@ -8,6 +8,6 @@ Minimal test repository for validating JAWM's Git-based workflow resolution.
 
 ## Usage
 ```bash
-jawm mpg-age-bioinformatics/jawm_git_test
-jawm mpg-age-bioinformatics/jawm_git_test@v1.0.0
-jawm mpg-age-bioinformatics/jawm_git_test//examples
+jawm jawm_git_test
+jawm jawm_git_test@v1.0.0
+jawm jawm_git_test@main//examples/demo.py
