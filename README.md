@@ -11,3 +11,4 @@ Minimal test repository for validating JAWM's Git-based workflow resolution.
 jawm jawm_git_test
 jawm jawm_git_test@v1.0.0
 jawm jawm_git_test@main//examples/demo.py
+
