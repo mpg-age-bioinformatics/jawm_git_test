@@ -4,7 +4,7 @@ from jawm import Process
 # Minimal dummy process
 p = Process(
     name="echo_test",
-    script="#!/bin/bash\necho Hello JAWM! > output.txt\n",
+    script="#!/bin/bash\necho Hello jawm! > output.txt\n",
     logs_directory="logs"
 )
 
