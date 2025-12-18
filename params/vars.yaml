@@ -1,0 +1,3 @@
+REMOTE_VAR_YAML: "ok-from-remote-vars"
+REMOTE_NUMBER: 123
+REMOTE_FLAG: true
