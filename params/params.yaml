@@ -1,9 +1,9 @@
-global:
+- scope: global
   desc: "desc_from_remote_params"
   var:
     REMOTE_PARAM_YAML: "ok-from-remote-params"
 
-process:
-  "*":
-    var:
-      REMOTE_PARAM_APPLIES_TO_ALL: "yes"
+- scope: process
+  name: "*"
+  var:
+    REMOTE_PARAM_APPLIES_TO_ALL: "yes"
