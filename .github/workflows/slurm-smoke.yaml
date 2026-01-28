@@ -1,0 +1,82 @@
+name: slurm-smoke
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  slurm-basic-tools:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Optional but robust: ensures docker compose exists; no-ops if already installed
+      - name: Ensure Docker Compose
+        uses: docker/setup-compose-action@v1
+
+      - name: Clone slurm-docker-cluster
+        run: |
+          git clone --depth=1 https://github.com/giovtorres/slurm-docker-cluster.git _slurm
+
+      - name: Build & start cluster (docker compose)
+        run: |
+          cd _slurm
+          docker compose up -d --build
+
+      - name: Wait until Slurm responds (sinfo)
+        run: |
+          cd _slurm
+          for i in {1..60}; do
+            if docker exec slurmctld bash -lc 'sinfo >/dev/null 2>&1'; then
+              echo "Slurm is ready"
+              break
+            fi
+            echo "Waiting for Slurm... ($i)"
+            sleep 3
+          done
+          docker exec slurmctld bash -lc 'sinfo'
+
+      - name: Smoke test (sinfo/srun/sbatch/squeue/sacct)
+        run: |
+          docker exec slurmctld bash -lc '
+            set -euo pipefail
+
+            echo "== sinfo =="; sinfo
+            echo "== scontrol ping =="; scontrol ping
+
+            echo "== srun =="; srun -N1 -n1 hostname
+
+            echo "== sbatch ==";
+            cd /data
+            jobid=$(sbatch --parsable --wrap="hostname")
+            echo "jobid=$jobid"
+
+            echo "== wait for output file =="
+            out="slurm-${jobid}.out"
+            for i in {1..40}; do
+              [[ -s "$out" ]] && break
+              sleep 1
+            done
+            echo "--- $out ---"
+            cat "$out"
+
+            echo "== squeue (may be empty if job finished quickly) =="; squeue || true
+
+            echo "== sacct (may lag briefly) ==";
+            sacct -j "${jobid}" --format=JobID,JobName%20,State,ExitCode -n || true
+          '
+
+      - name: Logs / status (debug)
+        if: always()
+        run: |
+          docker ps -a || true
+          docker logs slurmctld --tail=200 || true
+          docker logs slurmdbd --tail=200 || true
+
+      - name: Tear down
+        if: always()
+        run: |
+          cd _slurm
+          docker compose down -v
